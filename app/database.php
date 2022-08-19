@@ -26,4 +26,4 @@ define("SLT", "Harpocrates");
 // http://example.com/myprojects/project1/controller/method/
 // can be called with:
 // <a href="<?= DIR =>controller/method/"></a>
-define("DIR", "/mvcelo/public/");
+define("DIR", "/besrek/public/");
