@@ -49,6 +49,8 @@ if($d['employees_in_dep']->isEmpty() && $d['employees_not_in_dep']->isEmpty()){
         echo "Ansatte: " . $d['employees_in_dep']->count();
     }
 
+    $this->printAllErrors($d);
+
     // Available employees
     if($d['employees_not_in_dep']->isEmpty()){
         // No employees available to add
@@ -74,5 +76,7 @@ if($d['employees_in_dep']->isEmpty() && $d['employees_not_in_dep']->isEmpty()){
         <?php
     }
 }
+
+// var_dump($d);
 
 require_once "../app/views/footer.php";

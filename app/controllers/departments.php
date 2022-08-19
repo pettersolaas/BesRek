@@ -98,13 +98,13 @@ class Departments extends Controller {
         }
     }
 
-    private $employees_in_dep;
-    private $employees_not_in_dep;
-
-    
     // Show the employees for a specified department
-    public function employees(){
+    private $employees_in_dep;
+    private $employees_not_in_dep;    
+    public function employees($d = null){
 
+        // var_dump($d);
+        // die();
         // Get employees who are already in department
         $this->employees_in_dep = $this->employee->withWhereHas('departments', fn($query) => 
         $query->where('departments.id', '=', $_SESSION['department_id'])
@@ -116,53 +116,63 @@ class Departments extends Controller {
         )->get();
 
         // Put datasets into array
-        $this->data =[
+        $this->data = [
             'employees_in_dep' => $this->employees_in_dep,
             'employees_not_in_dep' => $this->employees_not_in_dep
         ];
+
+        // Add errors from calling function (add/remove employee)
+        if(isset($d['errors'])){
+            $this->data = array_merge($this->data, $d);
+        }
         
         $this->view('departments/employees', $this->data);
     }
 
 
     // Add an employee to department
+    private $employee_exists;
+    private $employee_already_in_department;
+
     public function addemployee($employee_id){
 
         // Check if employee exists
-        $employee_exists = $this->employee->find($employee_id);
+        $this->employee_exists = $this->employee->find($employee_id);
         
-        if (!$employee_exists) {
+        if (!$this->employee_exists) {
             $this->data['errors']['employee_doesnt_exist'] = "Feil: Ansatt # " . $employee_id . " eksisterer ikke.";
         }
         
         // Check if employee is already added to requested department
-        $employee_already_in_department = $this->department->find($_SESSION['department_id'])->employees()->find($employee_id);
+        $this->employee_already_in_department = $this->department->find($_SESSION['department_id'])->employees()->find($employee_id);
 
-        if ($employee_already_in_department) {
+        if ($this->employee_already_in_department) {
             $this->data['errors']['employee_already_in_department'] = "Feil: Ansatt #" . $employee_id . " er allerede tilkoblet avdeling #" . $_SESSION['department_id'];
         }
 
         // Add employee
-        if (!$employee_already_in_department && $employee_exists) {
+        if (!$this->employee_already_in_department && $this->employee_exists) {
             $add_employee = $this->department->find($_SESSION['department_id'])->employees()->attach($employee_id);
         }
-        $this->employees($_SESSION['department_id'], $this->data);  
+        $this->employees($this->data);  
     }
 
 
     // Remove an employee from a department
+    private $remove;
+    
     public function removeemployee($employee_id){
 
         // Remove employee-department attachment
-        $remove = $this->department->find($_SESSION['department_id'])->employees()->detach($employee_id);
-        
+        $this->remove = $this->department->find($_SESSION['department_id'])->employees()->detach($employee_id);
+
         // Add error message if query returned 0
-        if(!$remove) {
+        if(!$this->remove) {
             $this->data['errors']['unknown_error'] = "En feil oppsto. Den ansatte kunne ikke fjernes";
         }
 
         // Go back to list and pass on errors
-        $this->employees($_SESSION['department_id'], $this->data);
+        $this->employees($this->data);
     }
     
  }
