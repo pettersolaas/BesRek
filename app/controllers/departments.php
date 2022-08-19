@@ -103,8 +103,6 @@ class Departments extends Controller {
     private $employees_not_in_dep;    
     public function employees($d = null){
 
-        // var_dump($d);
-        // die();
         // Get employees who are already in department
         $this->employees_in_dep = $this->employee->withWhereHas('departments', fn($query) => 
         $query->where('departments.id', '=', $_SESSION['department_id'])
@@ -156,7 +154,6 @@ class Departments extends Controller {
         }
         $this->employees($this->data);  
     }
-
 
     // Remove an employee from a department
     private $remove;
