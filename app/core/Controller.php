@@ -5,13 +5,13 @@
 class Controller {
     
     // Containers
-    private $brand;
-    private $complaint;
-    private $customer;
-    private $departments;
-    private $employees;
-    private $item;
-    private $data;
+    protected $brand;
+    protected $complaint;
+    protected $customer;
+    protected $departments;
+    protected $employees;
+    protected $item;
+    protected $data;
 
     public function model($model){
         require_once '../app/models/' . $model . '.php';

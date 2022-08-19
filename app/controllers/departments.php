@@ -30,45 +30,64 @@ class Departments extends Controller {
         $this->view('departments/edit', $this->data);
     }
 
+        // Check if errors are present in $data['errors] array
+        public function errors2() {
+            if(isset($this->data['errors'])) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
     // Process request to update department
+    private $new_login_name;
+    private $new_display_name;
+    private $new_pw1;
+    private $new_pw2;
+    
     public function update() {
-        
-        // Map new data temporarily to department object
-        $this->department = Department::find($_SESSION['department_id']);
-        $this->department->login_name = $_POST['login_name'];
-        $this->department->display_name = $_POST['display_name'];
+        // Sanitize input
+        $this->new_login_name = htmlspecialchars($_POST['login_name']);
+        $this->new_display_name = htmlspecialchars($_POST['display_name']);
+        $this->new_pw1 = htmlspecialchars($_POST['password']);
+        $this->new_pw2 = htmlspecialchars($_POST['password2']);
 
         // Check input and define error messages
-        if(!preg_match('/^[a-zA-Z0-9_-æøåÆØÅ]{5,20}$/', $_POST['login_name'])) {
+        if(!preg_match('/^[a-zA-Z0-9_-æøåÆØÅ]{5,20}$/', $this->new_login_name)) {
             $this->data['errors']['login_name'] = "Brukernavn må være av lengde 5-20 og kan kun inneholde følgende tegn: a-å 0-9 _ -";
         }
 
-        if(!preg_match('/^.{2,20}$/', $_POST['display_name'])) {
+        if(!preg_match('/^.{2,20}$/', $this->new_display_name)) {
             $this->data['errors']['display_name'] = "Synlig navn må være av lengde 2-20.";
         }
 
+        // Map new data temporarily to department object
+        $this->department = Department::find($_SESSION['department_id']);
+        $this->department->login_name = $this->new_login_name;
+        $this->department->display_name = $this->new_display_name;
+        
         // Map new password only if it is entered and don't generate an error
-        if(strlen($_POST['password']) > 0 || strlen($_POST['password2']) > 0) {
-            if(!preg_match('/^[a-zA-Z0-9]{8,20}$/', $_POST['password'])) {
+        if(strlen($this->new_pw1) > 0 || strlen($this->new_pw2) > 0) {
+            if(!preg_match('/^[a-zA-Z0-9]{8,20}$/', $this->new_pw1)) {
                 $this->data['errors']['password'] = "Passord må være av lengde 8-20 og kun inneholde følgende tegn: a-å 0-9 _ -";
-            } elseif($_POST['password'] != $_POST['password2']) {
+            } elseif($this->new_pw1 != $this->new_pw2) {
                 $this->data['errors']['password'] = "Passordene var ikke identiske";
             } else {
-                $this->department->password = crypt($_POST['password'], SLT);
+                $this->department->password = crypt($this->new_pw1, SLT);
             }
         }
 
         // Go back to form and display errors and values submitted by user
         if($this->errors()) {
             // Set fields to submitted data or original data?
-            if (isset($_POST['login_name'])) {
-                $this->data['login_name'] = $_POST['login_name'];
+            if (isset($this->new_login_name)) {
+                $this->data['login_name'] = $this->new_login_name;
             } else {
                 $this->data['login_name'] = $_SESSION['login_name'];
             }
 
-            if(isset($_POST['display_name'])) {
-                $this->data['display_name'] = $_POST['display_name'];
+            if(isset($this->new_display_name)) {
+                $this->data['display_name'] = $this->new_display_name;
             } else {
                 $this->data['display_name'] = $_SESSION['display_name'];
             }
@@ -76,8 +95,7 @@ class Departments extends Controller {
             $this->view('departments/edit', $this->data);
 
         // Update db with new values
-        } else {
-            
+        } else {            
             // Save to database and update users session
             $this->department->save();
             $_SESSION['department_login_name'] = $this->department->login_name;
