@@ -1,14 +1,9 @@
 <?php
-// Shows list of employees at a department
-// Todo: Ability to change name
-// Todo: ability to set user passive
 checkLogin();
 
 $page_title = "Ansatte ved avdeling";
 
 require_once "../app/views/header.php";
-
-
 
 // Check if there are any employees created
 if($d['employees_in_dep']->isEmpty() && $d['employees_not_in_dep']->isEmpty()){
@@ -79,12 +74,5 @@ if($d['employees_in_dep']->isEmpty() && $d['employees_not_in_dep']->isEmpty()){
         <?php
     }
 }
-
-
-
-// dd($d['employees_not_in_dep']);
-
-
-
 
 require_once "../app/views/footer.php";
