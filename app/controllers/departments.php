@@ -30,14 +30,6 @@ class Departments extends Controller {
         $this->view('departments/edit', $this->data);
     }
 
-        // Check if errors are present in $data['errors] array
-        public function errors2() {
-            if(isset($this->data['errors'])) {
-                return true;
-            } else {
-                return false;
-            }
-        }
 
     // Process request to update department
     private $new_login_name;
@@ -106,34 +98,27 @@ class Departments extends Controller {
         }
     }
 
+    private $employees_in_dep;
+    private $employees_not_in_dep;
+
     
     // Show the employees for a specified department
-    public function employees($department_id = null){
+    public function employees(){
 
-        if(!$department_id) {
-            $department_id = $_SESSION['department_id'];
-        }
+        // Get employees who are already in department
+        $this->employees_in_dep = $this->employee->withWhereHas('departments', fn($query) => 
+        $query->where('departments.id', '=', $_SESSION['department_id'])
+        )->get();
 
-        // Get department and its connected employees
-        $department_with_employees = $this->department->with(['employees'])->where('id', '=', $department_id)->get();
-        
-        // Check if results are returned
-        if($department_with_employees->isEmpty()){
-            $this->data['errors']['invalid_department'] = "Avdeling " . $department_id . " eksisterer ikke";
-        }
-
-        // Get list of employees
-        $this->employee = $this->employee->all();
-
-        // Check if employees-list is populated
-        if($this->employee->isEmpty()){
-            $this->data['errors']['no_employees'] = "Ingen ansatte eksisterer. <a href=\"" . DIR . "employees/new/\">Opprett ny ansatt</a>";
-        }
+        // Get employees who arenot in department
+        $this->employees_not_in_dep  = $this->employee->WhereDoesntHave('departments', fn($query) => 
+        $query->where('departments.id', '=', $_SESSION['department_id'])
+        )->get();
 
         // Put datasets into array
         $this->data =[
-            'department_with_employees' => $department_with_employees,
-            'all_employees' => $this->employee
+            'employees_in_dep' => $this->employees_in_dep,
+            'employees_not_in_dep' => $this->employees_not_in_dep
         ];
         
         $this->view('departments/employees', $this->data);

@@ -8,66 +8,83 @@ $page_title = "Ansatte ved avdeling";
 
 require_once "../app/views/header.php";
 
-// Array to keep track of employees already in this department
-$current_employees = array();
 
-// Show list of employees in a department
-foreach($d['department_with_employees'] as $department) {
-?>
 
-    <h1><?= $department->display_name ?></h1>
+// Check if there are any employees created
+if($d['employees_in_dep']->isEmpty() && $d['employees_not_in_dep']->isEmpty()){
+    ?>
+    <br>
+    <p>Ingen ansatte eksisterer. Vil du opprette en ny?</p>
+    <br>
 
-    <h3>Current employees:</h3>
-    <table>
+    <h3>Opprett en ny ansatt:</h3>
+    <form action="<?= DIR ?>employees/create/" method="post">
+        <label for="employee_name">Ansattnavn:</label><br>
+        <input type="text" name="employee_name"><br>
+
+        <input type="checkbox" name="add_to_department">
+        <label for="add_to_department">Knytte ansatt til <?= $_SESSION['department_display_name'] ?>?</label><br>
+        <button type="submit">Opprett</button>
+    </form>
     <?php
-    foreach($department->employees as $employee){
-        // Add current employee ID to array
-        array_push($current_employees, $employee->id);
+
+} else {
+    
+    // Employees already in department
+    if($d['employees_in_dep']->isEmpty()) {
+        // No employees in dep
+        echo "<p>Det er ingen ansatte i denne avdelingen</p>";
+    } else {
+        // Show list of employees currently in department
         ?>
-        <tr>
-            <td><?= $employee->id . " " . $employee->name ?></td>
-            <?php
-            // Show remove link if we are showing the department that is logged in
-            if($_SESSION['department_id'] == $department->id) {
-            echo "<td><a href=" . DIR . "departments/removeemployee/". $employee->id . ">Remove</a></td>";
-            }
-            ?>
-        </tr>
+        <h3>Ansatte i avdeling:</h3>
+        <table>
         <?php
-    }
-    echo "</table>";
-}
-
-echo "Ansatte: " . count($current_employees);
-?>
-
-<h3>Add employee:</h3>
-    <table>
-    <?php
-    foreach($d['all_employees'] as $employee) {
-
-        // Skip employees who are already listed
-        if(!in_array($employee->id, $current_employees)) {
+        foreach($d['employees_in_dep'] as $employee){
             ?>
-
             <tr>
                 <td><?= $employee->id . " " . $employee->name ?></td>
                 <?php
-                // Show add link if we are showing the department that is logged in
-                if($_SESSION['department_id'] == $d['department_with_employees'][0]->id) {
-                echo "<td><a href=" . DIR . "departments/addemployee/" . $employee->id . ">Add</a></td>";
-                }
+                echo "<td><a href=" . DIR . "departments/removeemployee/". $employee->id . ">Fjern</a></td>";
                 ?>
             </tr>
             <?php
         }
+        echo "</table>";
+        echo "Ansatte: " . $d['employees_in_dep']->count();
     }
-?>    
 
-</table>
+    // Available employees
+    if($d['employees_not_in_dep']->isEmpty()){
+        // No employees available to add
+        echo "<p>Det er ingen flere ansatte som kan legges til</p>";
+    } else{
+        // Show list of employeees not in department (who can be added)
+        ?>
+        <h3>Legg til ansatt:</h3>
+        <table>
+            <?php
+            foreach($d['employees_not_in_dep'] as $employee) {
+                ?>
+                <tr>
+                    <td><?= $employee->id . " " . $employee->name ?></td>
+                    <?php
+                    echo "<td><a href=" . DIR . "departments/addemployee/" . $employee->id . ">Legg til</a></td>";
+                    ?>
+                </tr>
+                <?php
+            }
+        ?>
+        </table>
+        <?php
+    }
+}
+
+
+
+// dd($d['employees_not_in_dep']);
 
 
 
 
-<?php
 require_once "../app/views/footer.php";
