@@ -8,13 +8,10 @@ checkLogin();
 $page_title = "Ansattliste";
 
 require_once "../app/views/header.php";
-?>
-<a href="<?= DIR ?>home/index/">HJEM</a>
-<br><br>
-<?php
 
-dd($d);
-die;
+
+// dd($d);
+// die;
 
 
 // Check if any employees are returned
@@ -49,22 +46,16 @@ if(!$d['employees']->isEmpty()){
     </table>
     <br>
 <?php
-$this->printAllErrors();
+
+$this->printAllErrors($d);
+
 } else {
 
     echo "<p>Ingen ansatte er opprettet.</p>";
 }
 
-
-
-// printError($d['errors']['employee_doesnt_exist_or_inactive']);
-// printError($d['errors']['employee_doesnt_exist_or_active']);
-
 ?>
 
-
-
-<br>
 <br>
 
 <h3>Opprett en ny ansatt:</h3>

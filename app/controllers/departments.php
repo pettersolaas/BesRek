@@ -108,12 +108,12 @@ class Departments extends Controller {
         // Get employees who are already in department
         $this->employees_in_dep = $this->employee->withWhereHas('departments', fn($query) => 
         $query->where('departments.id', '=', $_SESSION['department_id'])
-        )->get();
+        )->orderBy('name', 'asc')->get();
 
         // Get employees who arenot in department
         $this->employees_not_in_dep  = $this->employee->WhereDoesntHave('departments', fn($query) => 
         $query->where('departments.id', '=', $_SESSION['department_id'])
-        )->get();
+        )->orderBy('name', 'asc')->get();
 
         // Put datasets into array
         $this->data = [

@@ -9,76 +9,59 @@ class Employees extends Controller {
      }
 
     // Show list of all emloyees
-    public function index($data = null) {
+    public function index($d = null) {
 
         // Retrieve all employees
-        $this->data['employees'] = $this->employees->get();
-
-        
-        // Error if there are no users in DB
-        // if($this->data['employees']->isEmpty()){
-        //     $this->data['errors'] = "No users exist yet";
-        // }
+        $this->data['employees'] = $this->employees->orderBy('name', 'asc')->get();
 
         $this->view('employees/index', $this->data);
     }
 
-    // Show only active employees
-
-    // Show only inactive employees
-
     // Create new employee
+    private $employee_exists;
+    private $new_employee_name;
+    private $new_employee;
+
     public function create() {
-
-        // Check if requested employee name is taken
-        $employee_exists = $this->employees->where('name', '=', $_POST['employee_name'])->exists();
-
-        if ($employee_exists) {
-            $this->data['errors']['employee_exist'] = "Feil: En ansatt med det navnet eksisterer allerede.";
-            // print_r($this->errors);
-            // die();
+        
+        // Sanitize requested employee name
+        $this->new_employee_name = htmlspecialchars($_POST['employee_name']);
+        if(!preg_match('/^[a-zA-Z0-9_-æøåÆØÅ]{3,30}$/', $this->new_employee_name)) {
+            $this->data['errors']['username'] = "Brukernavn må være av lengde 3-30 og kan kun inneholde følgende tegn: a-å 0-9 _ -";
         }
 
-        // Sanitize requested employee name
-        if(!preg_match('/^[a-zA-Z0-9_-æøåÆØÅ]{3,30}$/', $_POST['employee_name'])) {
-            $this->data['errors']['username'] = "Brukernavn må være av lengde 3-30 og kan kun inneholde følgende tegn: a-å 0-9 _ -";
+        // Check if requested employee name is taken
+        $this->employee_exists = $this->employees->where('name', '=', $this->new_employee_name)->exists();
+
+        if ($this->employee_exists) {
+            $this->data['errors']['employee_exist'] = "Feil: En ansatt med det navnet eksisterer allerede.";
         }
 
         // Create employee
         if(!$this->errors()) {
-            $new_employee = $this->employees->create(['name' => $_POST['employee_name']]);
+            $this->new_employee = $this->employees->create(['name' => $this->new_employee_name]);
 
             // Add employee to logged in department
             if(!empty($_POST['add_to_department'])) {
-                $this->departments->find($_SESSION['department_id'])->employees()->attach($new_employee->id);
+                $this->departments->find($_SESSION['department_id'])->employees()->attach($this->new_employee->id);
             }
         }
 
         $this->index($this->data);
     }
 
-
     // Activate employee
+    private $requested_employee;
+    
     public function activate($employee_id = null) {
 
         // Make sure user exists
-        $requested_employee = $this->employees->find($employee_id);
-// // echo "<pre>";
-//         if($requested_employee){
-//             echo "not empty";
-//         } else {
-//             echo "empty";
-//         }
-
-//         echo "<br>";
-//         var_dump($requested_employee->active);
-        
-//         die;
+        $this->requested_employee = $this->employees->find($employee_id);
 
         // Update user
-        if(!empty($requested_employee) && !$requested_employee->active) {
-            $requested_employee->active = 1;
-            $requested_employee->save();
+        if(!empty($this->requested_employee) && !$this->requested_employee->active) {
+            $this->requested_employee->active = 1;
+            $this->requested_employee->save();
         } else {
             $this->data['errors']['employee_doesnt_exist_or_active'] = "Feil: Ansatt ble ikke funnet eller er allerede aktivert.";
         }
@@ -98,12 +81,12 @@ class Employees extends Controller {
     public function deactivate($employee_id = null) {
 
         // Make sure user exists
-        $requested_employee = $this->employees->find($employee_id);
+        $this->requested_employee = $this->employees->find($employee_id);
 
         // Update user
-        if(!empty($requested_employee) && $requested_employee->active) {
-            $requested_employee->active = 0;
-            $requested_employee->save();
+        if(!empty($this->requested_employee) && $this->requested_employee->active) {
+            $this->requested_employee->active = 0;
+            $this->requested_employee->save();
         } else {
             $this->data['errors']['employee_doesnt_exist_or_inactive'] = "Feil: Ansatt ble ikke funnet eller er allerede deaktivert.";
         }
