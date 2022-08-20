@@ -17,7 +17,7 @@ $capsule->addConnection([
 
 $capsule->bootEloquent();
 
-// Secret word to add to password encryption
+// Secret word (salt) to add to password encryption
 define("SLT", "Harpocrates");
 
 // Configurable directory constant to make referencing and header redirects more reliable
