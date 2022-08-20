@@ -10,3 +10,7 @@ table, th, td {
 .errortext {
 color: #f00;
 }
+
+.read_only {
+    background-color: rgb(140, 140, 140);
+}

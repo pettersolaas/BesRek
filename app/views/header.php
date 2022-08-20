@@ -7,8 +7,8 @@
     <title><?= $page_title ?></title>
     <link rel="stylesheet" href="<?= DIR ?>css/index.css">
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
-    <script src="http://localhost/mvcelo/public/js/jquery-3.6.0.min.js"></script>
-    <script src="http://localhost/mvcelo/public/js/jquery-ui.js"></script>
+    <script src="<?= DIR ?>js/jquery-3.6.0.min.js"></script>
+    <script src="<?= DIR ?>js/jquery-ui.js"></script>
 </head>
 <body>
 <?php

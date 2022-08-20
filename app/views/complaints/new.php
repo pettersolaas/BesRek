@@ -8,7 +8,7 @@ require_once "../app/views/header.php";
 
 <form action="<?= DIR ?>complaints/create" method="post" autocomplete="off">
     <label for="department_id">Avdelings ID</label><br>
-    <input type="text" name="department_id" value="<?= $_SESSION['department_id'] ?>" disabled>
+    <input type="text" name="department_id" value="<?= $_SESSION['department_id'] ?>" class="read_only" readonly>
     <span></span>
     <br>
     <?php
@@ -16,7 +16,7 @@ require_once "../app/views/header.php";
     // No employees
     if($d['active_employees']->isEmpty()){
         ?>
-        <p>Det er ingen ansatte registrert på din avdeling.</p><br>
+        <p>Det er ingen aktive ansatte registrert på din avdeling.</p><br>
         <a href="<?= DIR ?>employees/index">Opprett en ny ansatt</a><br>
         <a href="<?= DIR ?>departments/employees">Legg til ansatt til avdeling</a><br>
         <?php
@@ -27,11 +27,14 @@ require_once "../app/views/header.php";
         <select name="employee_id">
             <option value="">Velg...</option>
             <?php
+            $selected = "";
             foreach ($d['active_employees'] as $employee) {
-                if($_POST['employee_id'] == $employee->id) {
-                    $selected = " selected";
-                } else {
-                    $selected = "";
+                if(isset($_POST['employee_id'])) {
+                    if($_POST['employee_id'] == $employee->id) {
+                        $selected = " selected";
+                    } else {
+                        $selected = "";
+                    }
                 }
 
                 echo "<option value=\"" . $employee->id . "\"" . $selected . ">" . $employee->name . "</option>";
@@ -90,7 +93,7 @@ require_once "../app/views/header.php";
     <br>
 
     <label for="customer_id">(Kunde ID)</label><br>
-    <input type="text" name="customer_id" id="customer_id" value="<?= $this->printVar($_POST['customer_id']); ?>" readonly>
+    <input type="text" name="customer_id" id="customer_id" value="<?= $this->printVar($_POST['customer_id']); ?>" class="read_only" readonly>
     <br>    <br>
 
 
@@ -127,7 +130,7 @@ require_once "../app/views/header.php";
     <br>   
     
     <label for="brand_id">(Merke ID)</label><br>
-    <input type="text" name="brand_id" id="brand_id" value="<?= $this->printVar($_POST['brand_id']); ?>" readonly>
+    <input type="text" name="brand_id" id="brand_id" value="<?= $this->printVar($_POST['brand_id']); ?>" class="read_only" readonly>
     <br><br>    
 
     <label for="item_model">Modell</label><br>
