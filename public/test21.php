@@ -23,4 +23,8 @@ if(!empty($d['errors'])){
 
 
 
-print_r($data);
+// print_r($data);
+
+// $test = "abc";
+
+echo @$test;

@@ -54,4 +54,14 @@ class Controller {
         echo isset($var) ? $var : $default;
     }
 
+    // Print first variable if it exists, or second variable if it exists
+    // Example: $this->printFormVar($d->customers->mail, $_POST['customer_phone'])
+    // function printFormVar($db_data, $post_data) {
+    //     if(!empty($db_data)){
+    //         echo $db_data;
+    //     } elseif(!empty($post_data)) {
+    //         echo $post_data;
+    //     }
+    // }
+
 }

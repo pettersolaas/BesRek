@@ -9,6 +9,7 @@ require_once "../app/views/header.php";
     <h3>Reklamasjoner:</h3>
     <table>
         <tr>
+            <th></th>
             <th>ID</th>
             <th>Merke</th>
             <th>Modell</th>
@@ -22,6 +23,7 @@ require_once "../app/views/header.php";
         foreach ($d['all_complaints'] as $complaint) {
             ?>
             <tr>
+                <td><a href="<?= DIR ?>complaints/edit/<?= $complaint->id ?>">Rediger</a></td>
                 <td><?= $complaint->id ?></td>
                 <td><?= $complaint->items->brands->id . " - " . $complaint->items->brands->name ?></td>
                 <td><?= $complaint->items->id . " - " . $complaint->items->model ?></td>
