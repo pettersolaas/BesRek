@@ -12,6 +12,7 @@ class Controller {
     protected $employees;
     protected $item;
     protected $data;
+    protected $images;
 
     public function model($model){
         require_once '../app/models/' . $model . '.php';

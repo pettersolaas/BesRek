@@ -25,4 +25,8 @@ class Complaint extends Eloquent{
     public function brands(){
         return $this->hasOneThrough(Brand::class, Item::class, 'id', 'id', 'item_id', 'brand_id');
     }
+
+    public function images(){
+        return $this->hasMany(Image::class);
+    }
 }
