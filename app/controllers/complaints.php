@@ -13,6 +13,7 @@ class Complaints extends Controller {
        $this->item = $this->model('Item');
        $this->customer = $this->model('Customer');
        $this->brand = $this->model('Brand');
+       $this->images = $this->model('Image');
      }
 
 
@@ -213,8 +214,9 @@ class Complaints extends Controller {
 
     // Prepare data for edit
     private $requested_complaint;
+    private $complaint_images;
 
-    public function edit($complaint_id) {
+    public function edit($complaint_id, $d = null) {
 
         // Check to see if complaint exists and belong to current department
         if(!empty($complaint_id)){
@@ -222,17 +224,220 @@ class Complaints extends Controller {
             
             if(!empty($this->requested_complaint)) {
 
+                // Get associated images if they exist
+                $this->complaint_images = $this->images->where('complaint_id', '=', $complaint_id)->get();
+                if(!$this->complaint_images->isEmpty()){
+                    $this->data['images'] = $this->complaint_images;
+                }
+
                 // Get all active employees
                 $this->data['all_employees'] = $this->getAllEmployeesFromDepartment();
 
                 // Get complaint
                 $this->data['complaint'] = $this->requested_complaint;
 
+                // Add errors from calling function (add/remove employee)
+                if(isset($d['errors'])){
+                    $this->data = array_merge($this->data, $d);
+                }
+
                 $this->view('complaints/form', $this->data);
             } else {
                 echo "Reklamasjonssaken eksisterer ikke eller tilhører en annen avdeling.";
             }
         }
+    }
+
+        // Save image to complaint
+        public function uploadImage() {
+
+            // Check if form is submitted
+            if(isset($_POST['image_submit'])){
+
+
+                foreach ($_FILES['image']['tmp_name'] as $key => $val ) {
+                    if (!preg_match("/^.*\.(jpg|jpeg|png)$/i", $_FILES['image']['name'][$key])) {
+                        $this->data['errors']['image_extension' . $key] = "Filen \"" . $_FILES['image']['name'][$key] . "\" er av ugyldig filtype. Du kan kun laste opp filer med filtype jpg, jpeg og png";
+                    }
+                }
+    
+                // Make sure requested complaint exists
+                if(!$this->complaintExists($_POST['complaint_id'])){
+                    $this->data['errors']['complaint_does_not_exist'] = "Angitt reklamasjon ble ikke funnet";
+                }
+                
+                foreach ($_FILES['image']['tmp_name'] as $key => $val ) {
+                    $filesize_in_mb = (($_FILES['image']['size'][$key]/1024)/1024);
+                    // if($_FILES['documents']['size'][$key] > 7340032){
+                    if($filesize_in_mb > 2){
+                        $this->data['errors']['file_size' . $key] = "Filen \"" . $_FILES['image']['name'][$key] . "\" er " . round($filesize_in_mb, 2) . "MB. Filstørrelsen kan ikke overstige 7MB";
+                    }
+                }
+
+                foreach ($_FILES['image']['tmp_name'] as $key => $val ) {
+                    if($_FILES['image']['error'][$key] !== UPLOAD_ERR_OK){
+                        $this->data['errors']['upload_error' . $key] = "Det oppsto en feil under opplasting av bildet. Kode: " . $_FILES['image']['error'][$key];
+                    }
+                }
+                // $this->data['image_errors2']['test'] = "yes";
+
+                // if(!isset($this->data['image_errors'])){
+                //     echo "no errors";
+                // } else {
+                //     echo "errors";
+                // }
+
+
+                
+                // die;
+
+                    // Process image upload if no errors are set
+                    if(!$this->errors()){
+            
+                        foreach ($_FILES['image']['tmp_name'] as $key => $val ) {
+                            // Get file extension
+                            $file_ext = pathinfo($_FILES['image']['name'][$key], PATHINFO_EXTENSION);
+
+                            $resized_image = $this->thumbnail($_FILES['image']['tmp_name'][$key], 500);
+                            $resized_image_thumb = $this->thumbnail($_FILES['image']['tmp_name'][$key], 200);
+        
+                            // Set new filename: complaint_id + unique id + extension
+                            $new_filename = $_POST['complaint_id'] . "_" . uniqid() . "." . $file_ext;
+                            $new_filename_thumb = $_POST['complaint_id'] . "_" . uniqid() . "_thumb." . $file_ext;
+                            $new_path = "images/";
+                            
+                            $this->imageToFile($resized_image, $new_path . $new_filename);
+                            $this->imageToFile($resized_image_thumb, $new_path . $new_filename_thumb);
+                            // die;
+
+                            // Save to db
+                            $new_db_image = $this->images->create([
+                                'complaint_id' => $_POST['complaint_id'],
+                                'filename' => $new_filename,
+                                'thumbnail' => $new_filename_thumb
+                            ]);
+                        }
+
+
+
+
+    
+                        // Move file
+                        // move_uploaded_file($_FILES['image']['tmp_name'], "../images/" . $new_filename);
+    
+                        // Image uploaded
+                        header("Location: " . DIR . "complaints/edit/" . $_POST['complaint_id']);
+                        exit;
+                    } else {
+                        // Errors are present - show form again
+                        $this->edit($_POST['complaint_id'], $this->data);
+                    }
+    
+    
+            
+            }
+        }
+
+        public function thumbnail($inputFileName, $maxSize) {
+            $info = getimagesize($inputFileName);
+        
+            $width = isset($info['width']) ? $info['width'] : $info[0];
+            $height = isset($info['height']) ? $info['height'] : $info[1];
+        
+            // Calculate aspect ratio
+            $wRatio = $maxSize / $width;
+            $hRatio = $maxSize / $height;
+        
+            // Using imagecreatefromstring will automatically detect the file type
+            $sourceImage = imagecreatefromstring(file_get_contents($inputFileName));
+        
+            // Calculate a proportional width and height no larger than the max size.
+            if (($width <= $maxSize) && ($height <= $maxSize)) {
+                // Input is smaller than thumbnail, do nothing
+                return $sourceImage;
+            } elseif (($wRatio * $height) < $maxSize) {
+                // Image is horizontal
+                $tHeight = ceil($wRatio * $height);
+                $tWidth = $maxSize;
+            } else {
+                // Image is vertical
+                $tWidth = ceil($hRatio * $width);
+                $tHeight = $maxSize;
+            }
+        
+            $thumb = imagecreatetruecolor($tWidth, $tHeight);
+        
+            // Copy resampled makes a smooth thumbnail
+            imagecopyresampled($thumb, $sourceImage, 0, 0, 0, 0, $tWidth, $tHeight, $width, $height);
+            imagedestroy($sourceImage);
+        
+            return $thumb;
+        }
+
+        function imageToFile($im, $fileName, $quality = 90) {
+            if (!$im || file_exists($fileName)) {
+                return false;
+            }
+        
+            $ext = strtolower(substr($fileName, strrpos($fileName, '.')));
+        
+            switch ($ext) {
+                case '.jpg':
+                case '.jpeg':
+                    imagejpeg($im, $fileName, $quality);
+                    break;
+                case '.png':
+                    imagepng($im, $fileName);
+                    break;
+                default:
+                    return false;
+            }
+            return true;
+        }
+
+
+    // Remove image from database and server
+    public function removeImage($complaint_id, $image_filename){
+
+        //Fetch requested image if it belongs to current department
+        $image_exists = $this->images->
+        where('images.filename', '=', $image_filename)->
+        whereHas('complaints', function($q) {
+            $q->where('department_id', '=', $_SESSION['department_id']);
+        })->first();
+
+        if(empty($image_exists)) {
+            // Image does not exist or belongs to a different department
+            $this->data['errors']['image_not_found'] = "Bildet eksisterer ikke eller tilhører en annen avdeling";
+            echo "image does not exist";
+        } else {
+            // Image exists and belongs to current department
+            
+            // Delete image
+            if (file_exists("images/" . $image_exists->filename)) {
+                unlink("images/" . $image_exists->filename);
+            }
+            
+            //Delete thumbnail
+            if (file_exists("images/" . $image_exists->thumbnail)) {
+                unlink("images/" . $image_exists->thumbnail);
+            }
+            
+            // Delete from db
+            $deleted_image = $this->images->where('filename', '=', $image_filename)->delete();
+
+            // Go back to edit
+            header("Location: " . DIR . "complaints/edit/" . $complaint_id);
+            exit;
+        }
+        
+        // Errors are present - show form again
+        $this->edit($complaint_id, $this->data);
+    }
+
+    // Send e-mail with complaint to brand contact
+    public function sendComplaint($complaint_id){
+        
     }
 
     // Check if brand exists

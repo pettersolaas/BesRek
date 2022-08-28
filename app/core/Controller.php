@@ -41,7 +41,22 @@ class Controller {
     }
 
     // Print all errors that may exist
-    // Example: $this->printAllErrors($d);
+    // Example 1 (nested array):
+    // $d['errors']['brand_name'] = "Error message";          ->            $this->printAllErrors($d['errors']);
+    // Example 2 (double nested array):
+    // $d['image_errors']['file_size'][0] = "File xxx is too big";          ->            $this->printAllErrors($d['image_errors']);
+    // function printAllErrors(&$d) {
+    //     if(isset($d)) {
+    //         foreach($d as $key => $value)
+    //             if(is_array($d[$key])){
+    //                 foreach($value as $k => $v){
+    //                     echo "<div class=\"errortext\">" . $value[$k] . "</div>";
+    //                 }
+    //             } else {
+    //                 echo "<div class=\"errortext\">" . $d[$key] . "</div>";
+    //             }
+    //     }
+    // }
     public function printAllErrors(&$d) {
         if(isset($d['errors'])) {
             foreach($d['errors'] as $error)

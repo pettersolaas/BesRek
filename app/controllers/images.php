@@ -9,12 +9,15 @@ class Images extends Controller {
         $this->complaints = $this->model('Complaint');        
      }
 
-    // 
-    public function index() {
 
-        // Retrieve all employees
-        $images = $this->complaints->find(1)->images;
 
-        dd($images);
-    }
+
+        // Checks if a complaint exists
+        public function complaintExists($complaint_id){
+            if($this->complaints->where('id', '=', $complaint_id)->exists()){
+                return true;
+            } else {
+                return false;
+            }
+        }
 }
