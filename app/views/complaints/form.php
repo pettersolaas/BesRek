@@ -219,9 +219,10 @@ $this->printAllErrors($d);
     <textarea cols="100" rows="5" name="internal_note"><?= $_POST['internal_note'] ?? $d['complaint']->internal_note ?? ''; ?></textarea>
     <br><br>
 
-
+    <input type="button" value="Send e-post" onclick="window.location.href='<?= DIR ?>complaints/mail/<?= $_POST['complaint_id'] ?? $d['complaint']->id ?? ''; ?>'">
     <input type="submit" name="form_submit" value="Lagre">
 </form>
+
 
 <?php
 

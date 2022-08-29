@@ -149,14 +149,18 @@ class ComposerStaticInitdac8680be56851ec977d30e538449ab8
 
     public static $classMap = array (
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
+        'Brand' => __DIR__ . '/../..' . '/app/models/Brand.php',
+        'Complaint' => __DIR__ . '/../..' . '/app/models/Complaint.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'Customer' => __DIR__ . '/../..' . '/app/models/Customer.php',
         'Department' => __DIR__ . '/../..' . '/app/models/Department.php',
         'Employee' => __DIR__ . '/../..' . '/app/models/Employee.php',
+        'Image' => __DIR__ . '/../..' . '/app/models/Image.php',
+        'Item' => __DIR__ . '/../..' . '/app/models/Item.php',
         'Normalizer' => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer/Resources/stubs/Normalizer.php',
         'PhpToken' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/PhpToken.php',
         'Stringable' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Stringable.php',
         'UnhandledMatchError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/UnhandledMatchError.php',
-        'User' => __DIR__ . '/../..' . '/app/models/User.php',
         'ValueError' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/ValueError.php',
     );
 

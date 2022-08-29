@@ -435,10 +435,101 @@ class Complaints extends Controller {
         $this->edit($complaint_id, $this->data);
     }
 
-    // Send e-mail with complaint to brand contact
-    public function sendComplaint($complaint_id){
-        
+    // Prepare sending of email
+    public function mail($complaint_id){
+        if(!empty($complaint_id)){
+            $this->requested_complaint = $this->complaint->where('department_id', '=', $_SESSION['department_id'])->find($complaint_id);
+            
+            if(!empty($this->requested_complaint)) {
+                // Get complaint
+                $this->data['complaint'] = $this->requested_complaint;
+
+                // Get associated images if they exist
+                $this->complaint_images = $this->images->where('complaint_id', '=', $complaint_id)->get();
+                if(!$this->complaint_images->isEmpty()){
+                    $this->data['images'] = $this->complaint_images;
+                }
+
+                    $this->view('complaints/mail', $this->data);
+            } else {
+                echo "Reklamasjonssaken eksisterer ikke eller tilhører en annen avdeling.";
+                exit;
+            }
+        }
     }
+    // Send e-mail with complaint to brand contact
+    public function sendMail(){
+        // Check if form is submitted
+        if(isset($_POST['send_mail'])){
+
+            // a random hash will be necessary to send mixed content
+            $separator = md5(time());
+
+            // carriage return type (RFC)
+            $eol = "\r\n";
+        
+            $mailto = 'petter.solaas@gmail.com';
+            $subject = 'Image test';
+            $message = 'My message';
+
+            // main header (multipart mandatory)
+            $headers = "From: name <petter.solaas@gmail.com>" . $eol;
+            $headers .= "MIME-Version: 1.0" . $eol;
+            $headers .= "Content-Type: multipart/mixed; boundary=\"" . $separator . "\"" . $eol;
+            $headers .= "Content-Transfer-Encoding: 7bit" . $eol;
+            $headers .= "This is a MIME encoded message." . $eol;
+        
+            // message
+            $body = "--" . $separator . $eol;
+            $body .= "Content-Type: text/plain; charset=\"iso-8859-1\"" . $eol;
+            $body .= "Content-Transfer-Encoding: 8bit" . $eol;
+            $body .= $_POST['message'] . $eol;
+
+
+
+            // Get images
+            $complaint_images = $this->images->
+            where('complaint_id', '=', $_POST['complaint_id'])->
+            whereHas('complaints', function($q) {
+                $q->where('department_id', '=', $_SESSION['department_id']);
+            })->get();
+
+            // Add images to mail
+            foreach ($complaint_images as $image) {
+
+                $file = "images/" . $image->filename;
+
+                $content = file_get_contents($file);
+                $content = chunk_split(base64_encode($content));
+
+                // attachment
+                $body .= "--" . $separator . $eol;
+                $body .= "Content-Type: application/octet-stream; name=\"" . $image->filename . "\"" . $eol;
+                $body .= "Content-Transfer-Encoding: base64" . $eol;
+                $body .= "Content-Disposition: attachment" . $eol;
+                $body .= $content . $eol;
+
+                
+            }
+
+            $body .= "--" . $separator . "--";
+       
+            // Send mail
+            $send_mail = mail($_POST['to'], $_POST['subject'], $body, $headers);
+
+            if(!$send_mail){
+                echo "Det oppsto en feil under sending av e-post\r\n\r\n";
+                print_r(error_get_last());
+            } else {
+                // Go back to edit
+                header("Location: " . DIR . "complaints/edit/" . $_POST['complaint_id']);
+            }
+
+        }
+    }
+
+
+
 
     // Check if brand exists
     public function brandExists($brand_id, $brand_name){
