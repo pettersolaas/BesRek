@@ -40,6 +40,29 @@ class Controller {
         }
     }
 
+    public function printErrorFlash(&$error) {
+        if(isset($error)) {
+            ?>
+            <script>
+            toastr.options.positionClass = 'toast-top-center';
+            toastr.error('<?= $error ?>')
+            </script>
+            <?php
+        }
+    }
+
+    // Prints a success message
+    public function printSuccessFlash(&$message){
+        if(isset($message)){
+            ?>
+            <script>
+            toastr.options.positionClass = 'toast-top-center';
+            toastr.success('<?= $message ?>')
+            </script>
+            <?php
+        }   
+    }
+
     // Print all errors that may exist
     // Example 1 (nested array):
     // $d['errors']['brand_name'] = "Error message";          ->            $this->printAllErrors($d['errors']);

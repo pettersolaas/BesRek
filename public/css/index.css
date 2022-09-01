@@ -1,6 +1,10 @@
-body {
-    margin: 20px;
+html {
+    margin: 15px;
+    font-family: Verdana;
+    font-size: 1.2em;
+    background-color: rgb(171, 157, 157);
 }
+
 
 table, th, td {
     border: 1px solid black;
@@ -12,5 +16,79 @@ color: #f00;
 }
 
 .read_only {
-    background-color: rgb(140, 140, 140);
+/*    background-color: rgb(140, 140, 140);*/
+    display: none;
+}
+
+.customer {
+    position: absolute;
+    left: 460px;
+    top: 73px;
+    border: 0px solid black
+}
+
+.complaint_form {
+    border: 0px solid black;
+    margin-right: 40px;
+}
+
+.images_form {
+    border-left: 1px solid black;
+    min-height: 2vh;
+    padding-left: 30px;
+}
+
+.form-container {
+    display: flex;
+    flex-wrap: wrap;
+    border: 0px solid blueviolet;
+}
+
+.complaint-image {
+    display: flex;
+    border: 0px solid black;
+    display: flex;
+    align-items:center;
+    margin-bottom: 20px;
+}
+
+input.text_fields {
+    width: 360px;
+    font-size: 1.1rem;
+    display: block;
+    margin-bottom: 18px;
+}
+
+.employee_selector {
+    width: 200px;
+    font-size: 1.1rem;
+    margin-bottom: 18px;
+}
+
+textarea.text_fields {
+width: 800px;
+margin-bottom: 18px;
+display: block;
+font-size: 1.1rem;
+}
+
+input.form_buttons {
+    height: 40px;
+    width: 200px;
+    font-size: 1.1rem;
+}
+
+input.form_file_button {
+    height: 40px;
+    font-size: 1.1rem;
+    display: block;
+}
+
+label {
+    display: block;
+}
+
+.complaint_image {
+    border: 1px solid black;
+    margin-left: 20px;
 }

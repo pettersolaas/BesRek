@@ -269,8 +269,8 @@ class Complaints extends Controller {
                 foreach ($_FILES['image']['tmp_name'] as $key => $val ) {
                     $filesize_in_mb = (($_FILES['image']['size'][$key]/1024)/1024);
                     // if($_FILES['documents']['size'][$key] > 7340032){
-                    if($filesize_in_mb > 2){
-                        $this->data['errors']['file_size' . $key] = "Filen \"" . $_FILES['image']['name'][$key] . "\" er " . round($filesize_in_mb, 2) . "MB. Filstørrelsen kan ikke overstige 7MB";
+                    if($filesize_in_mb > 5){
+                        $this->data['errors']['file_size' . $key] = "Filen \"" . $_FILES['image']['name'][$key] . "\" er " . round($filesize_in_mb, 2) . "MB. Filstørrelsen kan ikke overstige 5MB";
                     }
                 }
 
@@ -298,7 +298,7 @@ class Complaints extends Controller {
                             // Get file extension
                             $file_ext = pathinfo($_FILES['image']['name'][$key], PATHINFO_EXTENSION);
 
-                            $resized_image = $this->thumbnail($_FILES['image']['tmp_name'][$key], 500);
+                            $resized_image = $this->thumbnail($_FILES['image']['tmp_name'][$key], 1600);
                             $resized_image_thumb = $this->thumbnail($_FILES['image']['tmp_name'][$key], 200);
         
                             // Set new filename: complaint_id + unique id + extension
@@ -462,15 +462,8 @@ class Complaints extends Controller {
         // Check if form is submitted
         if(isset($_POST['send_mail'])){
 
-            // a random hash will be necessary to send mixed content
             $separator = md5(time());
-
-            // carriage return type (RFC)
             $eol = "\r\n";
-        
-            $mailto = 'petter.solaas@gmail.com';
-            $subject = 'Image test';
-            $message = 'My message';
 
             // main header (multipart mandatory)
             $headers = "From: name <petter.solaas@gmail.com>" . $eol;
@@ -484,8 +477,6 @@ class Complaints extends Controller {
             $body .= "Content-Type: text/plain; charset=\"iso-8859-1\"" . $eol;
             $body .= "Content-Transfer-Encoding: 8bit" . $eol;
             $body .= $_POST['message'] . $eol;
-
-
 
             // Get images
             $complaint_images = $this->images->
@@ -508,22 +499,22 @@ class Complaints extends Controller {
                 $body .= "Content-Transfer-Encoding: base64" . $eol;
                 $body .= "Content-Disposition: attachment" . $eol;
                 $body .= $content . $eol;
-
-                
             }
 
             $body .= "--" . $separator . "--";
        
             // Send mail
-            $send_mail = mail($_POST['to'], $_POST['subject'], $body, $headers);
+            // $send_mail = mail($_POST['to'], $_POST['subject'], $body, $headers);
+            $send_mail = "faux";
 
-            if(!$send_mail){
-                echo "Det oppsto en feil under sending av e-post\r\n\r\n";
-                print_r(error_get_last());
+            if($send_mail){
+                $this->data['confirm']['email'] = "E-posten ble sendt";
             } else {
-                // Go back to edit
-                header("Location: " . DIR . "complaints/edit/" . $_POST['complaint_id']);
+                $this->data['flasherrors']['email'] = "Det oppsto en feil under sending av e-post";
             }
+                        
+            // Go back to edit
+            $this->edit($_POST['complaint_id'], $this->data);
 
         }
     }
