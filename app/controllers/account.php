@@ -54,6 +54,7 @@ class Account extends Controller {
             $_SESSION['department_login_name'] = $_POST['department'];
             $_SESSION['department_display_name'] = $this->department_display_name;
             header("Location: " . DIR . "home/index/");
+            exit;
 
         // Login failed
         } else {
@@ -66,6 +67,7 @@ class Account extends Controller {
     public function logout(){
         session_destroy();
         header("Location: " . DIR . "account/index/");
+        exit;
     }
 
 }

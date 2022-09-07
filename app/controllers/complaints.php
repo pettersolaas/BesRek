@@ -205,7 +205,8 @@ class Complaints extends Controller {
                 header("Location: " . DIR . "complaints/index");
             } else {
                 // Errors are present - show form again
-                $this->new();
+                echo "die";
+                $this->edit($_POST['complaint_id'], $this->data);
             }
 
 
@@ -243,7 +244,9 @@ class Complaints extends Controller {
 
                 $this->view('complaints/form', $this->data);
             } else {
-                echo "Reklamasjonssaken eksisterer ikke eller tilhører en annen avdeling.";
+                // echo "Reklamasjonssaken eksisterer ikke eller tilhører en annen avdeling.";
+                    // $this->data['errors']['complaint_does_not_exist'] = "Reklamasjonssaken eksisterer ikke eller tilhører en annen avdeling.";
+                $this->new();
             }
         }
     }
@@ -254,42 +257,39 @@ class Complaints extends Controller {
             // Check if form is submitted
             if(isset($_POST['image_submit'])){
 
+                // Check if any files were uploaded
+                if(!file_exists($_FILES['image']['tmp_name'][0]) || !is_uploaded_file($_FILES['image']['tmp_name'][0])) {
+                    $this->data['errors']['images']['no_image_found'] = "Ingen bilder ble valgt for opplasting";
+                } else {
 
-                foreach ($_FILES['image']['tmp_name'] as $key => $val ) {
-                    if (!preg_match("/^.*\.(jpg|jpeg|png)$/i", $_FILES['image']['name'][$key])) {
-                        $this->data['errors']['image_extension' . $key] = "Filen \"" . $_FILES['image']['name'][$key] . "\" er av ugyldig filtype. Du kan kun laste opp filer med filtype jpg, jpeg og png";
+                    // Make sure image is of accepted format
+                    foreach ($_FILES['image']['tmp_name'] as $key => $val ) {
+                        if (!preg_match("/^.*\.(jpg|jpeg|png)$/i", $_FILES['image']['name'][$key])) {
+                            $this->data['errors']['images']['image_extension' . $key] = "Filen \"" . $_FILES['image']['name'][$key] . "\" er av ugyldig filtype. Du kan kun laste opp filer med filtype jpg, jpeg og png";
+                        }
+                    }
+        
+                    // Make sure requested complaint exists
+                    if(!$this->complaintExists($_POST['complaint_id'])){
+                        $this->data['errors']['images']['complaint_does_not_exist'] = "Angitt reklamasjon ble ikke funnet";
+                    }
+                    
+                    // Check filesize of all images
+                    $max_file_size = 5;
+                    foreach ($_FILES['image']['tmp_name'] as $key => $val ) {
+                        $filesize_in_mb = (($_FILES['image']['size'][$key]/1024)/1024);
+                        if($filesize_in_mb > $max_file_size){
+                            $this->data['errors']['images']['file_size' . $key] = "Filen \"" . $_FILES['image']['name'][$key] . "\" er " . round($filesize_in_mb, 2) . "MB. Filstørrelsen kan ikke overstige " . $max_file_size . "MB";
+                        }
+                    }
+                    
+                    // Pass on upload errors
+                    foreach ($_FILES['image']['tmp_name'] as $key => $val ) {
+                        if($_FILES['image']['error'][$key] !== UPLOAD_ERR_OK){
+                            $this->data['errors']['images']['upload_error' . $key] = "Det oppsto en feil under opplasting av bildet. Kode: " . $_FILES['image']['error'][$key];
+                        }
                     }
                 }
-    
-                // Make sure requested complaint exists
-                if(!$this->complaintExists($_POST['complaint_id'])){
-                    $this->data['errors']['complaint_does_not_exist'] = "Angitt reklamasjon ble ikke funnet";
-                }
-                
-                foreach ($_FILES['image']['tmp_name'] as $key => $val ) {
-                    $filesize_in_mb = (($_FILES['image']['size'][$key]/1024)/1024);
-                    // if($_FILES['documents']['size'][$key] > 7340032){
-                    if($filesize_in_mb > 5){
-                        $this->data['errors']['file_size' . $key] = "Filen \"" . $_FILES['image']['name'][$key] . "\" er " . round($filesize_in_mb, 2) . "MB. Filstørrelsen kan ikke overstige 5MB";
-                    }
-                }
-
-                foreach ($_FILES['image']['tmp_name'] as $key => $val ) {
-                    if($_FILES['image']['error'][$key] !== UPLOAD_ERR_OK){
-                        $this->data['errors']['upload_error' . $key] = "Det oppsto en feil under opplasting av bildet. Kode: " . $_FILES['image']['error'][$key];
-                    }
-                }
-                // $this->data['image_errors2']['test'] = "yes";
-
-                // if(!isset($this->data['image_errors'])){
-                //     echo "no errors";
-                // } else {
-                //     echo "errors";
-                // }
-
-
-                
-                // die;
 
                     // Process image upload if no errors are set
                     if(!$this->errors()){
@@ -298,8 +298,8 @@ class Complaints extends Controller {
                             // Get file extension
                             $file_ext = pathinfo($_FILES['image']['name'][$key], PATHINFO_EXTENSION);
 
-                            $resized_image = $this->thumbnail($_FILES['image']['tmp_name'][$key], 1600);
-                            $resized_image_thumb = $this->thumbnail($_FILES['image']['tmp_name'][$key], 200);
+                            $resized_image = $this->resizeImage($_FILES['image']['tmp_name'][$key], 1600);
+                            $resized_image_thumb = $this->resizeImage($_FILES['image']['tmp_name'][$key], 200);
         
                             // Set new filename: complaint_id + unique id + extension
                             $new_filename = $_POST['complaint_id'] . "_" . uniqid() . "." . $file_ext;
@@ -308,7 +308,6 @@ class Complaints extends Controller {
                             
                             $this->imageToFile($resized_image, $new_path . $new_filename);
                             $this->imageToFile($resized_image_thumb, $new_path . $new_filename_thumb);
-                            // die;
 
                             // Save to db
                             $new_db_image = $this->images->create([
@@ -318,14 +317,7 @@ class Complaints extends Controller {
                             ]);
                         }
 
-
-
-
-    
-                        // Move file
-                        // move_uploaded_file($_FILES['image']['tmp_name'], "../images/" . $new_filename);
-    
-                        // Image uploaded
+                        // Image uploaded - show complaint form
                         header("Location: " . DIR . "complaints/edit/" . $_POST['complaint_id']);
                         exit;
                     } else {
@@ -338,7 +330,8 @@ class Complaints extends Controller {
             }
         }
 
-        public function thumbnail($inputFileName, $maxSize) {
+        // Resize image
+        public function resizeImage($inputFileName, $maxSize) {
             $info = getimagesize($inputFileName);
         
             $width = isset($info['width']) ? $info['width'] : $info[0];
@@ -374,6 +367,7 @@ class Complaints extends Controller {
             return $thumb;
         }
 
+        // Save image as file
         function imageToFile($im, $fileName, $quality = 90) {
             if (!$im || file_exists($fileName)) {
                 return false;
@@ -408,8 +402,7 @@ class Complaints extends Controller {
 
         if(empty($image_exists)) {
             // Image does not exist or belongs to a different department
-            $this->data['errors']['image_not_found'] = "Bildet eksisterer ikke eller tilhører en annen avdeling";
-            echo "image does not exist";
+            $this->data['errors']['images']['image_not_found'] = "Bildet eksisterer ikke eller tilhører en annen avdeling";
         } else {
             // Image exists and belongs to current department
             

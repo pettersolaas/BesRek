@@ -87,6 +87,17 @@ class Controller {
         }
     }
 
+    // Print errors that are present in an array
+    // Example:
+    // $d['errors']['images']['msg'] = "error message"  >>>   printRequestedErrors($d['errors']['images']);
+    // $d['errors']['error_name'] = "error message"   >>>  printRequestedErrors($d['errors']);
+    public function printRequestedErrors(&$errors) {
+        if(is_array($errors)) {
+            foreach($errors as $error)
+            echo "<div class=\"errortext\">" . $error . "</div>";
+        }
+    }
+
     // Print variable if set (re-autofill form fields)
     // Example: $this->printVar($d['key_name'])
     function printVar(&$var, $default = false) {
