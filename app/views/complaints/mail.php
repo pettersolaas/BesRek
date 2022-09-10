@@ -26,9 +26,18 @@ $message_end = "\r\n\r\n\r\nMvh. \r\n\r\n" . $_SESSION['department_display_name'
 
 <form action="<?= DIR ?>complaints/sendmail" method="post">
     <input type="hidden" name="complaint_id" value="<?= $d['complaint']->id ?>">
-    Til: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" name="to" value="<?= $to ?>" size="70"><br>
-    Emne: <input type="text" name="subject" value="<?= $subject ?>" size="70"><br><br>
-    <textarea cols="100" rows="20" name="message"><?php
+    
+    <div class="input_container">
+        <label for="to" class="email_label">Til:</label>
+        <input type="text" name="to" value="<?= $to ?>" class="mail_text_fields">
+    </div>
+    
+    <div class="input_container">
+        <label for="subject" class="email_label">Emne:</label>
+        <input type="text" name="subject" value="<?= $subject ?>" class="mail_text_fields">
+    </div>
+    
+    <textarea name="message" class="email"><?php
     echo $message_start . $message_details . $message_end;
     ?>
     </textarea>
@@ -41,19 +50,16 @@ $message_end = "\r\n\r\n\r\nMvh. \r\n\r\n" . $_SESSION['department_display_name'
             foreach ($d['images'] as $image) {
                 ?>
                 <a href="<?= DIR ?>images/<?= $image->filename ?>" target="_blank">
-                    <img src="<?= DIR ?>images/<?= $image->thumbnail ?>">
-                </a>&nbsp;&nbsp;
+                    <img src="<?= DIR ?>images/<?= $image->thumbnail ?>" class="complaint_image">
+                </a>
                 <?php
             }
         }
         ?>
     </div>
-    
-    <br>
-    <br>
 
-
-    <input type="submit" value="Send e-post" name="send_mail">
+    <input type="button" value="Avbryt" onclick="window.location.href='<?= DIR ?>complaints/index'" class="form_buttons email_buttons">
+    <input type="submit" value="Send e-post" name="send_mail" class="form_buttons email_buttons">
 
 </form>
 

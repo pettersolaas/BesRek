@@ -14,14 +14,22 @@ class Complaints extends Controller {
        $this->customer = $this->model('Customer');
        $this->brand = $this->model('Brand');
        $this->images = $this->model('Image');
+       $this->status = $this->model('Status');
      }
 
 
     // Show list of complaints
-    public function index() {
+    public function index($d = []) {
+
+        // Pass on data from calling function
+        $this->data = array();
+        $this->data = array_merge($this->data, $d);
     
         // Fetch complaints data
-        $this->data['all_complaints'] = $this->complaint->with(['departments', 'employees', 'customers', 'items', 'brands'])->get();
+        $this->data['all_department_complaints'] = $this->complaint->with(['departments', 'employees', 'customers', 'items', 'brands'])->where('complaints.department_id', '=', $_SESSION['department_id'])->get();
+
+        // Fetch all departments other than currently logged in
+        $this->data['all_other_departments'] = $this->department->where('id', '!=', $_SESSION['department_id'])->get();
 
         $this->view('complaints/index', $this->data);
     }
@@ -166,7 +174,8 @@ class Complaints extends Controller {
                         'purchase_date' => date('Y-m-d', strtotime($_POST['purchase_date'])),
                         'purchase_sum' => $_POST['purchase_sum'],
                         'description' => $_POST['description'],
-                        'internal_note' => $_POST['internal_note']
+                        'internal_note' => $_POST['internal_note'],
+                        'status_id' => 1
                     ]); 
 
                 } else {
@@ -195,7 +204,8 @@ class Complaints extends Controller {
                         'purchase_date' => $purchase_date,
                         'purchase_sum' => $_POST['purchase_sum'],
                         'description' => $_POST['description'],
-                        'internal_note' => $_POST['internal_note']
+                        'internal_note' => $_POST['internal_note'],
+                        'status_id' => $_POST['status']
                     ]); 
 
                 }
@@ -205,7 +215,6 @@ class Complaints extends Controller {
                 header("Location: " . DIR . "complaints/index");
             } else {
                 // Errors are present - show form again
-                echo "die";
                 $this->edit($_POST['complaint_id'], $this->data);
             }
 
@@ -233,6 +242,9 @@ class Complaints extends Controller {
 
                 // Get all active employees
                 $this->data['all_employees'] = $this->getAllEmployeesFromDepartment();
+
+                // Get all statuses
+                $this->data['all_statuses'] = $this->status->get();
 
                 // Get complaint
                 $this->data['complaint'] = $this->requested_complaint;
@@ -497,8 +509,7 @@ class Complaints extends Controller {
             $body .= "--" . $separator . "--";
        
             // Send mail
-            // $send_mail = mail($_POST['to'], $_POST['subject'], $body, $headers);
-            $send_mail = "faux";
+            $send_mail = mail($_POST['to'], $_POST['subject'], $body, $headers);
 
             if($send_mail){
                 $this->data['confirm']['email'] = "E-posten ble sendt";
@@ -512,6 +523,32 @@ class Complaints extends Controller {
         }
     }
 
+
+    public function transfer($complaint_id = null, $new_department_id = null) {
+
+        if(empty($complaint_id) || empty($new_department_id)){
+            $this->data['error']['missing_data'] = "Feil: Mangler complaint_id eller new_department_id";
+            $this->index($this->data);
+            exit;
+        }
+
+        if(!$this->isComplaintOwner($complaint_id)){
+            $this->data['error']['not_owner'] = "Feil: Reklamasjonen tilhører ikke din avdeling.";
+            $this->index($this->data);
+            exit;
+        }
+
+
+        // Transfer ownership
+        $transfer = $this->complaint
+        ->where('id', '=', $complaint_id)
+        ->update(['department_id' => $new_department_id]);
+        
+        $this->data['confirm']['transfer'] = "Reklamasjonen ble overført";
+
+        $this->index($this->data); 
+
+    }
 
 
 

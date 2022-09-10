@@ -29,4 +29,8 @@ class Complaint extends Eloquent{
     public function images(){
         return $this->hasMany(Image::class, 'id', 'complaint_id');
     }
+
+    public function status(){
+        return $this->hasOne(Status::class, 'id', 'status_id');
+    }
 }
