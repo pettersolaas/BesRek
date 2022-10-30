@@ -7,9 +7,6 @@ require_once "../app/views/header.php";
 
 $this->printSuccessFlash($d['confirm']['email']);
 $this->printErrorFlash($d['flasherrors']['email']);
-echo "post complaint id: " . $_POST['complaint_id'];
-echo "<br";
-echo "db complaint id: " . $d['complaint']->id;
 ?>
 
 
