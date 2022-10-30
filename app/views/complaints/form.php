@@ -16,9 +16,6 @@ $this->printErrorFlash($d['flasherrors']['email']);
         <form action="<?= DIR ?>complaints/process" method="post" autocomplete="off">
             <?php
             // Show extra fields if case is already saved
-
-
-
             if(!empty($d['complaint']->id)) {
                 ?>
                 <div class="input_container">
