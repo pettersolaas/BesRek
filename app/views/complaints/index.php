@@ -10,6 +10,8 @@ $this->printErrorFlash($d['error']['missing_data']);
 $this->printErrorFlash($d['error']['not_owner']);
 ?>
     <h3>Reklamasjoner:</h3>
+
+    Vis kun: 
     <table>
         <tr>
             <th></th>
